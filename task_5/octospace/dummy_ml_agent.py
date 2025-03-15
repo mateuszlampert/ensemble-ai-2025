@@ -132,8 +132,11 @@ def action_from_actions(action):
 
 
 class Agent:
-    def __init__(self):
-        self.total_reward = 0
+    def __init__(self, side: int):
+        """
+        :param side: Indicates whether the player is on left side (0) or right side (1)
+        """
+        self.side = side
 
     def get_action(self, obs: dict, info: dict = None) -> dict:
         ship = Ship(
