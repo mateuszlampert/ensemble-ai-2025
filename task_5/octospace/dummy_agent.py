@@ -1,10 +1,10 @@
-# Skeleton for Agent class
-
-import random
-
+from typing import Tuple
 class Ship:
-    def __init__(self, ship_id: int):
+    def __init__(self, ship_id: int, side: int, self_base_coords: Tuple[int, int], enemy_base_coords: Tuple[int, int]):
         self.ship_id = ship_id
+        self.side = side
+        self.self_base_coords = self_base_coords
+        self.enemy_base_coords = enemy_base_coords
 
     def get_self_ship(self, obs: dict):
         return next((ship for ship in obs["allied_ships"] if ship[0] == self.ship_id), None)
@@ -35,13 +35,13 @@ class Ship:
 
         return (x_2 - x_1) ** 2 - (y_2 - y_1) ** 2
 
-    def get_ship_coords(self, obs: dict):
+    def get_self_ship_coords(self, obs: dict):
         ship = self.get_self_ship(obs)
         return (ship[1], ship[2])
     
     def get_self_ship_health(self, obs: dict):
         ship = self.get_self_ship(obs)
-        return ship["health"]
+        return ship[4]
     
     def get_allied_ships_count(self, obs: dict):
         allied_ships = self.get_allied_ships(obs)
@@ -56,15 +56,25 @@ class Ship:
     
     def get_unoccupied_planets(self, obs: dict):
         planets = self.get_planets(obs)
-        return list(filter(lambda planet: planet["occupation_progress"] == -1, planets))
+        return list(filter(lambda planet: planet[2] == -1, planets))
     
     def get_allied_planets(self, obs: dict):
-        planets = self.get_planets(obs)
-        return list(filter(lambda planet: planet["occupation_progress"] < 50, planets))
+        if self.side == 0:
+            return self.get_player_1_planets(obs)
+        return self.get_player_2_planets(obs)
 
     def get_enemy_planets(self, obs: dict):
+        if self.side == 0:
+            return self.get_player_2_planets(obs)
+        return self.get_player_1_planets(obs)
+    
+    def get_player_1_planets(self, obs: dict):
         planets = self.get_planets(obs)
-        return list(filter(lambda planet: planet["occupation_progress"] >= 50, planets))
+        return list(filter(lambda planet: planet[2] < 50, planets))
+    
+    def get_player_2_planets(self, obs: dict):
+        planets = self.get_planets(obs)
+        return list(filter(lambda planet: planet[2] >= 50, planets))
     
     def get_allied_planets_count(self, obs: dict):
         allied_planets = self.get_allied_planets(obs)
@@ -89,6 +99,53 @@ class Ship:
     def get_nearest_enemy_planet(self, obs: dict):
         enemy_planets = self.get_enemy_planets(obs)
         return self.get_nearest_planet_from_collection(obs, enemy_planets)
+    
+    def is_enemy_in_range(self, obs: dict, distance: int = 8):
+        x_self, y_self = self.get_self_ship_coords(obs)
+        enemy_ships = self.get_enemy_ships(obs)
+
+        result = [0, 0, 0, 0]  # [N, S, W, E]
+
+        for enemy in enemy_ships:
+            x, y = enemy[1], enemy[2]
+
+            if x_self == x and 0 < y_self - y <= distance:
+                result[0] = 1
+            if x_self == x and 0 < y - y_self <= distance:
+                result[1] = 1
+            if y_self == y and 0 < x_self - x <= distance:
+                result[2] = 1
+            if y_self == y and 0 < x - x_self <= distance:
+                result[3] = 1
+
+            if all(result):
+                break
+
+        return result
+    
+    def get_self_base_planet(self, obs: dict):
+        allied_planets = self.get_allied_planets(obs)
+        return next((planet for planet in allied_planets if (planet[0], planet[1]) == self.self_base_coords), None)
+    
+    def get_enemy_base_planet(self, obs: dict):
+        enemy_planets = self.get_enemy_planets(obs)
+        return next((planet for planet in enemy_planets if (planet[0], planet[1]) == self.enemy_base_coords), None)
+    
+    def get_self_base_planet_health(self, obs: dict):
+        self_base_planet = self.get_self_base_planet(obs)
+        return self_base_planet[2]
+    
+    def get_self_base_planet_coords(self, obs: dict):
+        self_base_planet = self.get_self_base_planet(obs)
+        return (self_base_planet[0], self_base_planet[1])
+
+    def get_enemy_base_planet_health(self, obs: dict):
+        self_enemy_planet = self.get_enemy_base_planet(obs)
+        return self_enemy_planet[2]
+    
+    def get_enemy_base_planet_coords(self, obs: dict):
+        self_enemy_planet = self.get_enemy_base_planet(obs)
+        return (self_enemy_planet[0], self_enemy_planet[1])
 
 class Agent:
     def __init__(self, side: int):
@@ -96,6 +153,9 @@ class Agent:
         :param side: Indicates whether the player is on left side (0) or right side (1)
         """
         self.side = side
+
+        self.enemy_base_coords = None
+        self.self_base_coords = None
 
     def get_action(self, obs: dict) -> dict:
         """
@@ -140,6 +200,20 @@ class Agent:
         :param obs:
         :return:
         """
+
+        if self.self_base_coords is None:
+            if self.side == 0:
+                self.self_base_coords = next(((planet[0], planet[1]) for planet in obs["planets_occupation"] if planet[2] < 50), None)
+            else:
+                self.self_base_coords = next(((planet[0], planet[1]) for planet in obs["planets_occupation"] if planet[2] >= 50), None)
+
+        if self.enemy_base_coords is None:
+            if self.side == 0:
+                self.enemy_base_coords = next(((planet[0], planet[1]) for planet in obs["planets_occupation"] if planet[2] >= 50), None)
+            else:
+                self.enemy_base_coords = next(((planet[0], planet[1]) for planet in obs["planets_occupation"] if planet[2] < 50), None)
+
+        ship = Ship(0, self.side, self.self_base_coords, self.enemy_base_coords)
 
         return {
             "ships_actions": [[ship[0], 0, 0, 3] for i, ship in enumerate(obs["allied_ships"])],
