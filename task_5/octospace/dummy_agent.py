@@ -1,5 +1,3 @@
-# Skeleton for Agent class
-
 class Agent:
     def __init__(self, side: int):
         """
@@ -7,12 +5,15 @@ class Agent:
         """
         self.side = side
 
+        self.enemy_base_coords = (9, 9) if side == 0 else (90, 90)
+        self.self_base_coords = (90, 90) if side == 0 else (9, 9)
+
     def get_action(self, obs: dict) -> dict:
         """
         Main function, which gets called during step() of the environment.
 
         Observation space:
-            game_map: whole grid of board_size, which already has applied visibility mask on it
+            map: whole grid of board_size, which already has applied visibility mask on it
             allied_ships: an array of all currently available ships for the player. The ships are represented as a list:
                 (ship id, position x, y, current health points, firing_cooldown, move_cooldown)
                 - ship id: int [0, 1000]
@@ -52,10 +53,9 @@ class Agent:
         """
 
         return {
-            "ships_actions": [],
-            "construction": 0
+            "ships_actions": [[ship[0], 0, 0, 3] for i, ship in enumerate(obs["allied_ships"])],
+            "construction": 1
         }
-
 
     def load(self, abs_path: str):
         """
