@@ -22,8 +22,6 @@ CHECKPOINT_PATH = "model.pth"
 def submitting_example():
 
     # Create a dummy model
-    model = nn.Sequential(nn.Flatten(), nn.Linear(32 * 32 * 3, 1024))
-
     model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
     model.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1, bias=False)
     model.maxpool = nn.Identity()
