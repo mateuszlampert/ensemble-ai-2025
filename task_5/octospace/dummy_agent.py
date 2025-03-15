@@ -91,6 +91,12 @@ class Ship:
         return self.get_nearest_planet_from_collection(obs, enemy_planets)
 
 class Agent:
+    def __init__(self, side: int):
+        """
+        :param side: Indicates whether the player is on left side (0) or right side (1)
+        """
+        self.side = side
+
     def get_action(self, obs: dict) -> dict:
         """
         Main function, which gets called during step() of the environment.
