@@ -47,18 +47,23 @@ def simulate_game(
     score = np.array([0, 0], dtype=float)
     curr_round = 0
 
-    while curr_round / 2 != n_games:
+    info1 = None
+    info2 = None
+
+    while True or curr_round / 2 != n_games:
         if terminated or sum(reward.values()) != 0:
             curr_round += 1
             score += np.array(list(reward.values()))
             obs, info = env.reset()
-            agent_1 = setup_agent(agent_class=player_1_agent_class, player_id=player_1_id, side=(curr_round % 2))
-            agent_2 = setup_agent(agent_class=player_2_agent_class, player_id=player_2_id, side=(curr_round % 2 + 1))
+            # agent_1 = setup_agent(agent_class=player_1_agent_class, player_id=player_1_id, side=(curr_round % 2))
+            # agent_2 = setup_agent(agent_class=player_2_agent_class, player_id=player_2_id, side=(curr_round % 2 + 1))
 
         env.render()
 
-        action_1 = agent_1.get_action(obs["player_1"])
-        action_2 = agent_2.get_action(obs["player_2"])
+        action_1 = agent_1.get_action(obs["player_1"], info1)
+        action_2 = agent_2.get_action(obs["player_2"], info2)
+
+        prev_obs = obs
 
         obs, reward, terminated, _, info = env.step(
             {
@@ -66,6 +71,20 @@ def simulate_game(
                 "player_2": action_2
             }
         )
+
+        info1 = {
+            "reward": (list(reward.values())[0] * 2 - 1) if sum(reward.values()) else 0,
+            "terminated": terminated,
+            "prev_obs": prev_obs["player_1"],
+            "actions": action_1
+        }
+
+        info2 = {
+            "reward": (list(reward.values())[1] * 2 - 1) if sum(reward.values()) else 0,
+            "terminated": terminated,
+            "prev_obs": prev_obs["player_2"],
+            "actions": action_2
+        }
 
         if render_mode is not None:
             for event in pygame.event.get():

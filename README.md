@@ -20,5 +20,11 @@ As an example, you can use an empty Agent class in agent.py:
 python run_match.py ../agent.py ../agent.py --render_mode=human --turn_on_music=True
 ```
 
+DQL model:
+
+```
+python run_match.py ./dummy_ml_agent.py ./dummy_ml_agent.py --render_mode=human
+```
+
 ## Troubleshooting
 If you'd notice any strange behavior or error, please contact the Infrastructure Team on Discord or on-site.
