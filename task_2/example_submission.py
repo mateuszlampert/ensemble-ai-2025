@@ -128,7 +128,7 @@ def submitting_example():
             raise Exception(f"Invalid model, {e=}")
         try:
             out = stolen_model.run(
-                None, {"x": np.random.randn(1, 3, 32, 32).astype(np.float32)}
+                None, {"x": np.random.randn(32, 3, 32, 32).astype(np.float32)}
             )[0][0]
         except Exception as e:
             raise Exception(f"Some issue with the input, {e=}")
