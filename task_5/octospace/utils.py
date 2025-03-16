@@ -33,7 +33,7 @@ def get_nearest_enemy_ship_coords(obs: dict, ship_id: int, side: int):
             return (9999, 9999)
         return (-9999, -9999)
 
-    return get_nearest_ship_from_collection(obs, enemy_ships, ship_id)
+    return get_ship_coords(get_nearest_ship_from_collection(obs, enemy_ships, ship_id))
 
 def get_nearest_ship_from_collection(obs: dict, ships: list, ship_id: int):
     self_ship = get_self_ship(obs, ship_id)
@@ -155,6 +155,9 @@ def get_enemy_base_planet(obs: dict, side: int, enemy_base_coords: Tuple[int, in
 
 def get_self_base_planet_health(obs: dict, side: int, self_base_coords: Tuple[int, int]):
     self_base_planet = get_self_base_planet(obs, side, self_base_coords)
+    if not self_base_planet:
+        return 0
+    
     return self_base_planet[2]
 
 def get_enemy_base_planet_health(obs: dict, side: int, enemy_base_coords: Tuple[int, int]):
@@ -167,6 +170,18 @@ def get_enemy_base_planet_health(obs: dict, side: int, enemy_base_coords: Tuple[
 def obs_to_state(obs: dict, ship_id: int, side: int):
     self_base_coords = (9, 9) if side == 0 else (90, 90)
     enemy_base_coords = (90, 90) if side == 0 else (9, 9)
+
+    # print(list(map(len, [
+    #     get_self_ship_coords(obs, ship_id),
+    # self_base_coords,
+    # get_nearest_allied_ship_coords(obs, ship_id, side),
+    # get_nearest_enemy_ship_coords(obs, ship_id, side),
+    # get_nearest_unoccupied_planet_coords(obs, ship_id, enemy_base_coords),
+    # get_nearest_allied_planet_coords(obs, side, ship_id, self_base_coords),
+    # get_nearest_enemy_planet_coords(obs, side, ship_id, enemy_base_coords),
+    # enemy_base_coords,
+    # is_enemy_in_range(obs, ship_id)
+    # ])))
 
     return [
         *get_self_ship_coords(obs, ship_id),

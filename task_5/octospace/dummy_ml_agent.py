@@ -208,7 +208,7 @@ class Agent:
         :param abs_path:
         :return:
         """
-        filename = "agents/1_15.pth"
+        filename = "agents/2_1.pth"
 
         self.state_dim = 27
         self.action_dim = 4
@@ -219,8 +219,8 @@ class Agent:
         self.buffer_size = 10000
 
         self.q_network = DQN(self.state_dim, self.action_dim)
-        # self.q_network.load_state_dict(torch.load(filename))
-        # print(f"Model loaded from {filename}")
+        self.q_network.load_state_dict(torch.load(filename))
+        print(f"Model loaded from {filename}")
         self.target_network = DQN(self.state_dim, self.action_dim)
         self.target_network.load_state_dict(self.q_network.state_dict())
 
