@@ -4,7 +4,7 @@ import torch.optim as optim
 import random
 import numpy as np
 from collections import deque
-
+from utils import obs_to_state
 
 class DQN(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -190,6 +190,8 @@ class Agent:
         ships_actions = []
 
         for id, x, y, *_ in obs["allied_ships"]:
+            state = obs_to_state(obs, id, self.side)
+            
             direction = ship.predict_action([x, y])
             ships_actions.append([id, 0, direction, 1])
 
