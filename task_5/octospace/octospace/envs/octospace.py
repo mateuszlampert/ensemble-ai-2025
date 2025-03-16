@@ -420,7 +420,7 @@ class OctoSpaceEnv(gym.Env):
 
         def merge(d1, d2):
             d = {}
-            for  k in list(d1.keys()) + list(d1.keys()):
+            for  k in set(list(d1.keys()) + list(d2.keys())):
                 d[k] = d1.get(k, 0) + d2.get(k, 0)
             return d
 

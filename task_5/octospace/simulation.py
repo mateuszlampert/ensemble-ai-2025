@@ -34,7 +34,7 @@ def simulate_game(
     if not verbose:
         gym.logger.min_level = 40
 
-    env = gym.make('OctoSpace-v0', player_1_id=player_1_id, player_2_id=player_2_id, max_steps=100,
+    env = gym.make('OctoSpace-v0', player_1_id=player_1_id, player_2_id=player_2_id, max_steps=2000,
                    render_mode=render_mode, turn_on_music=turn_on_music, volume=0.1)
     obs, info = env.reset()
 
@@ -84,14 +84,14 @@ def simulate_game(
         )
 
         info1 = {
-            "reward": (list(reward.values())[0] * 2 - 1) if sum(reward.values()) else 0,
+            "reward": info[1],
             "terminated": terminated,
             "prev_obs": prev_obs["player_1"],
             "actions": action_1
         }
 
         info2 = {
-            "reward": (list(reward.values())[1] * 2 - 1) if sum(reward.values()) else 0,
+            "reward": info[2],
             "terminated": terminated,
             "prev_obs": prev_obs["player_2"],
             "actions": action_2

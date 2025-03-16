@@ -37,7 +37,7 @@ class ReplayBuffer:
 
 class Ship:
     def __init__(self, q_network, target_network, optimizer, replay_buffer):
-        self.state_dim = 27
+        self.state_dim = 28
         self.action_dim = 17
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
@@ -145,27 +145,24 @@ class Agent:
         )
 
         if info:
-            is_win = info["reward"] == 1
-            is_lose = info["reward"] == -1
-            is_draw = info["terminated"]
-            reward = 100 if is_win else -100 if is_lose else -20 if is_draw else -0.1
-
-            is_end = is_win or is_lose or is_draw
+            reward = info["reward"]
 
             prev_actions = info["actions"]
             prev_obs = info["prev_obs"]
 
+            # print(reward)
+
             for id, x, y, *_ in obs["allied_ships"]:
-                if any(map(lambda x: x[0] == id, prev_obs["allied_ships"])):
+                if any(map(lambda x: x[0] == id, prev_obs["allied_ships"])) and id in reward.keys():
                     ship.train(
                         obs_to_state(prev_obs, id, self.side),
                         action_to_val(list(filter(lambda x: x[0] == id, prev_actions["ships_actions"]))[0]),
-                        reward,
+                        reward[id],
                         obs_to_state(obs, id, self.side),
-                        is_end,
+                        reward[id] > 100,
                     )
             
-            if random.random() < 0.001: 
+            if self.side % 2 == 0 and random.random() < 0.001: 
                 self.save_model(f"agents/{datetime.datetime.now().hour}_{datetime.datetime.now().minute}.pth")
 
             # next_state = np.random.rand(agent.state_dim)  # Replace with actual environment logic
@@ -187,6 +184,7 @@ class Agent:
 
         for id, x, y, *_ in obs["allied_ships"]:
             state = obs_to_state(obs, id, self.side)
+            # print(len(state))
             # print(state)
             # print(len(state))
             
@@ -206,9 +204,9 @@ class Agent:
         :param abs_path:
         :return:
         """
-        filename = "agents/3_11.pth"
+        filename = "agents/4_48.pth"
 
-        self.state_dim = 27
+        self.state_dim = 28
         self.action_dim = 17
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
