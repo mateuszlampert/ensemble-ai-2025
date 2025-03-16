@@ -353,16 +353,20 @@ class OctoSpaceEnv(gym.Env):
         # Decrease cooldowns
         _decrease_cooldowns(player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships)
 
+        ship_1_actions = [ship_id for ship_id in self._player_1_ships.keys()]
+        ship_2_actions = [ship_id for ship_id in self._player_2_ships.keys()]
+
         # Ships firing
         _ship_firing(actions=actions, player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships,
                      player_1_ships_facing=self._player_1_ships_facing, player_2_ships_facing=self._player_2_ships_facing,
-                     effects=self.effects, turn_on_music=self._turn_on_music, volume=self.volume)
+                     effects=self.effects, turn_on_music=self._turn_on_music, volume=self.volume, ship_1_actions=ship_1_actions,
+                     ship_2_actions=ship_2_actions)
 
         # Ship movement
         _ship_movement(game_map=self._map, actions=actions, player_1_ships=self._player_1_ships,
                        player_2_ships=self._player_2_ships, player_1_ships_facing=self._player_1_ships_facing,
                        player_2_ships_facing=self._player_2_ships_facing, effects=self.effects, turn_on_music=self._turn_on_music,
-                       volume=self.volume)
+                       volume=self.volume, ship_1_actions=ship_1_actions, ship_2_actions=ship_2_actions)
 
         # Construction
         _ship_construction(actions=actions, player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships,
