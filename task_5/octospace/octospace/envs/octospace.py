@@ -256,19 +256,19 @@ class OctoSpaceEnv(gym.Env):
             "player_1": {
                 "map": player_1_map,
                 "allied_ships": [[ship_id] + ship for ship_id, ship in self._player_1_ships.items()],
-                "enemy_ships": [[ship_id] + ship for ship_id, ship in self._player_2_ships.items() if self._player_1_visibility_mask[ship[0], ship[1]]],
+                "enemy_ships": [[ship_id] + ship for ship_id, ship in self._player_2_ships.items() if self._player_1_visibility_mask[ship[1], ship[0]]],
                 "planets_occupation": [(planet_x, planet_y, occupation) for (planet_x, planet_y), occupation in
                                        zip(self._planets_centers, self._planets_occupation_progress) if
-                                       self._player_1_visibility_mask[planet_y, planet_x]],
+                                       self._player_1_visibility_mask[planet_x, planet_y]],
                 "resources": self._player_1_resources
             },
             "player_2": {
                 "map": player_2_map,
                 "allied_ships": [[ship_id] + ship for ship_id, ship in self._player_2_ships.items()],
-                "enemy_ships": [[ship_id] + ship for ship_id, ship in self._player_1_ships.items() if self._player_2_visibility_mask[ship[0], ship[1]]],
+                "enemy_ships": [[ship_id] + ship for ship_id, ship in self._player_1_ships.items() if self._player_2_visibility_mask[ship[1], ship[0]]],
                 "planets_occupation": [(planet_x, planet_y, occupation) for (planet_x, planet_y), occupation in
                                        zip(self._planets_centers, self._planets_occupation_progress) if
-                                       self._player_2_visibility_mask[planet_y, planet_x]],
+                                       self._player_2_visibility_mask[planet_x, planet_y]],
                 "resources": self._player_2_resources
             }
         }
