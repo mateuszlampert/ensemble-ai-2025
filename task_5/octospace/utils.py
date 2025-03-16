@@ -222,7 +222,7 @@ def val_to_action(ship_id: int, val: int):
         case 15: return [ship_id, 1, 2]
         case _: return [ship_id, 1, 3]
 
-def action_to_val(action: list, val: int):
+def action_to_val(action: list):
     if len(action) == 4:
         _, _, direction, speed = tuple(action)
 

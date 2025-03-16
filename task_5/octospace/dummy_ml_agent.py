@@ -4,7 +4,7 @@ import torch.optim as optim
 import random
 import numpy as np
 from collections import deque
-from utils import obs_to_state, val_to_action
+from utils import obs_to_state, val_to_action, action_to_val
 import datetime
 
 
@@ -148,7 +148,7 @@ class Agent:
             is_win = info["reward"] == 1
             is_lose = info["reward"] == -1
             is_draw = info["terminated"]
-            reward = 100 if is_win else -100 if is_lose else -20
+            reward = 100 if is_win else -100 if is_lose else -20 if is_draw else -0.1
 
             is_end = is_win or is_lose or is_draw
 
@@ -159,9 +159,7 @@ class Agent:
                 if any(map(lambda x: x[0] == id, prev_obs["allied_ships"])):
                     ship.train(
                         obs_to_state(prev_obs, id, self.side),
-                        action_from_actions(
-                            list(filter(lambda x: x[0] == id, prev_actions["ships_actions"]))[0]
-                        ),
+                        action_to_val(list(filter(lambda x: x[0] == id, prev_actions["ships_actions"]))[0]),
                         reward,
                         obs_to_state(obs, id, self.side),
                         is_end,
@@ -192,7 +190,7 @@ class Agent:
             # print(state)
             # print(len(state))
             
-            action = val_to_action(ship.predict_action(state))
+            action = val_to_action(id, ship.predict_action(state))
             ships_actions.append(action)
 
         if random.random() < 0.1:
@@ -208,7 +206,7 @@ class Agent:
         :param abs_path:
         :return:
         """
-        filename = "agents/2_1.pth"
+        filename = "agents/3_11.pth"
 
         self.state_dim = 27
         self.action_dim = 17
@@ -219,7 +217,7 @@ class Agent:
         self.buffer_size = 10000
 
         self.q_network = DQN(self.state_dim, self.action_dim)
-        self.q_network.load_state_dict(torch.load(filename))
+        # self.q_network.load_state_dict(torch.load(filename))
         print(f"Model loaded from {filename}")
         self.target_network = DQN(self.state_dim, self.action_dim)
         self.target_network.load_state_dict(self.q_network.state_dict())
