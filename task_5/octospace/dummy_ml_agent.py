@@ -7,6 +7,7 @@ from collections import deque
 from utils import obs_to_state, val_to_action, action_to_val
 import datetime
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class DQN(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -42,7 +43,7 @@ class Ship:
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
         self.lr = 1e-3  # Learning rate
-        self.batch_size = 64
+        self.batch_size = 256
 
         self.q_network = q_network
         self.target_network = target_network
@@ -61,9 +62,9 @@ class Ship:
         else:
             # Exploitation: Choose the best action based on the current Q-values
             with torch.no_grad():
-                state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+                state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(DEVICE)
                 q_values = self.q_network(state_tensor)
-                return torch.argmax(q_values, dim=1).item()
+                return torch.argmax(q_values, dim=1)
 
     def update(self):
         """
@@ -77,11 +78,11 @@ class Ship:
         states, actions, rewards, next_states, dones = zip(*batch)
 
         # Convert batch to tensors
-        states = torch.tensor(states, dtype=torch.float32)
-        actions = torch.tensor(actions, dtype=torch.long)
-        rewards = torch.tensor(rewards, dtype=torch.float32)
-        next_states = torch.tensor(next_states, dtype=torch.float32)
-        dones = torch.tensor(dones, dtype=torch.float32)
+        states = torch.tensor(states, dtype=torch.float32).to(DEVICE)
+        actions = torch.tensor(actions, dtype=torch.long).to(DEVICE)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(DEVICE)
+        next_states = torch.tensor(next_states, dtype=torch.float32).to(DEVICE)
+        dones = torch.tensor(dones, dtype=torch.float32).to(DEVICE)
 
         # Compute Q-values for the current states
         q_values = self.q_network(states)
@@ -184,10 +185,7 @@ class Agent:
 
         for id, x, y, *_ in obs["allied_ships"]:
             state = obs_to_state(obs, id, self.side)
-            # print(len(state))
-            # print(state)
-            # print(len(state))
-            
+
             action = val_to_action(id, ship.predict_action(state))
             ships_actions.append(action)
 
@@ -211,7 +209,7 @@ class Agent:
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
         self.lr = 1e-3  # Learning rate
-        self.batch_size = 64
+        self.batch_size = 256
         self.buffer_size = 10000
 
         self.q_network = DQN(self.state_dim, self.action_dim)
@@ -243,6 +241,7 @@ class Agent:
         :return:
         """
         self.q_network.to(device)
+        self.target_network.to(device)
     
     def save_model(self, filename="dqn_model.pth"):
         torch.save(self.q_network.state_dict(), filename)
