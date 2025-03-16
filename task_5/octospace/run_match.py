@@ -20,7 +20,6 @@ def get_parser():
     return parser
 
 
-
 def run_match(
         n_matches: int,
         agent_1_path: str,

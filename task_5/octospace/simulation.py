@@ -53,7 +53,7 @@ def simulate_game(
             score += np.array(list(reward.values()))
             obs, info = env.reset()
             agent_1 = setup_agent(agent_class=player_1_agent_class, player_id=player_1_id, side=(curr_round % 2))
-            agent_2 = setup_agent(agent_class=player_2_agent_class, player_id=player_2_id, side=(curr_round % 2 + 1))
+            agent_2 = setup_agent(agent_class=player_2_agent_class, player_id=player_2_id, side=((curr_round + 1) % 2))
 
         env.render()
 
