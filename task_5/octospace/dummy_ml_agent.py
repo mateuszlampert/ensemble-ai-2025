@@ -204,7 +204,7 @@ class Agent:
         :param abs_path:
         :return:
         """
-        filename = "agents/4_48.pth"
+        filename = "agents/4_49.pth"
 
         self.state_dim = 28
         self.action_dim = 17
