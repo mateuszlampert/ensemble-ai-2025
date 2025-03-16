@@ -221,3 +221,31 @@ def val_to_action(ship_id: int, val: int):
         case 14: return [ship_id, 1, 1]
         case 15: return [ship_id, 1, 2]
         case _: return [ship_id, 1, 3]
+
+def action_to_val(action: list, val: int):
+    if len(action) == 4:
+        _, _, direction, speed = tuple(action)
+
+        match (direction, speed):
+            case (0, 0): return 0
+            case (0, 1): return 1
+            case (0, 2): return 2
+            case (0, 3): return 3
+            case (1, 1): return 4
+            case (1, 2): return 5
+            case (1, 3): return 6
+            case (2, 1): return 7
+            case (2, 2): return 8
+            case (2, 3): return 9
+            case (3, 1): return 10
+            case (3, 2): return 11
+            case (3, 3): return 12
+
+    elif len(action) == 3:
+        _, _, direction = tuple(action)
+
+        match direction:
+            case 0: return 13
+            case 1: return 14
+            case 2: return 15
+            case _: return 16
