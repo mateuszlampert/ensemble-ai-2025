@@ -1,10 +1,11 @@
 from typing import Union
 
+import PIL.Image
 import numpy as np
 import PIL
 
 
-def add_watermark(file_path: str) -> Union[PIL.Image, None]:
+def add_watermark(file_path: str) -> PIL.Image:
     """
     FUNCTION SIGNATURE: add_watermark(file_path: str) -> PIL.Image
 
