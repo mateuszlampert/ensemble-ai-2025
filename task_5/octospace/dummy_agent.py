@@ -5,10 +5,7 @@ class Agent:
         """
         self.side = side
 
-        self.enemy_base_coords = (9, 9) if side == 0 else (90, 90)
-        self.self_base_coords = (90, 90) if side == 0 else (9, 9)
-
-    def get_action(self, obs: dict) -> dict:
+    def get_action(self, obs: dict, info = {}) -> dict:
         """
         Main function, which gets called during step() of the environment.
 
