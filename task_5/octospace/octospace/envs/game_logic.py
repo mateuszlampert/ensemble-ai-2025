@@ -7,6 +7,7 @@ from octospace.envs.game_config import (MAX_SHIP_FIRE_RANGE, SHIP_DAMAGE, BASE_S
 from octospace.envs.schemes import PLANET_MASK
 from octospace.envs.sound import play_space_jump_sound, play_capture_sound, play_ship_explosion_sound, play_shoot_sound
 
+from collections import defaultdict
 
 player_1_ships_next_id = 1
 player_2_ships_next_id = 1
@@ -22,12 +23,18 @@ def _ship_firing(
     turn_on_music: bool,
     volume: float
 ):
+    firing_info = {
+        1: defaultdict(int),
+        2: defaultdict(int)
+    }
+
     for command in actions["player_1"]["ships_actions"]:
         if command[1] == 1:
             ship_id, act, direction = command
 
             # If there is not such ship or the ship has an active firing cooldown
             if ship_id not in player_1_ships.keys() or player_1_ships[ship_id][4] > 0:
+                firing_info[1][ship_id] -= 2
                 continue
 
             # Play shoot sound
@@ -47,9 +54,13 @@ def _ship_firing(
             player_1_ships[ship_id][3] = FIRING_COOLDOWN    # Set firing cooldown for this ship
 
             if target_id == -1:
+                firing_info[1][ship_id] -= 2
                 continue
+
             player_2_ships[target_id][2] -= SHIP_DAMAGE  # Damage the enemy ship
             player_1_ships_facing[ship_id] = direction
+
+            firing_info[1][ship_id] += 3
 
     for command in actions["player_2"]["ships_actions"]:
         if command[1] == 1:
@@ -57,6 +68,7 @@ def _ship_firing(
 
             # If there is not such ship or the ship has an active firing cooldown
             if ship_id not in player_2_ships.keys() or player_2_ships[ship_id][4] > 0:
+                firing_info[2][ship_id] -= 2
                 continue
 
             # Play shoot sound
@@ -76,10 +88,13 @@ def _ship_firing(
             player_2_ships[ship_id][3] = FIRING_COOLDOWN
 
             if target_id == -1:
+                firing_info[2][ship_id] -= 2
                 continue
             player_1_ships[target_id][2] -= SHIP_DAMAGE
             player_2_ships_facing[ship_id] = direction
+            firing_info[2][ship_id] += 3
 
+    return firing_info
 
 def _handle_ship_death(
     player_1_ships: dict,
@@ -90,9 +105,15 @@ def _handle_ship_death(
     turn_on_music: bool,
     volume: float
 ):
+    ship_death_info = {
+        1: defaultdict(int),
+        2: defaultdict(int)
+    }
+
     for ship_id in list(player_1_ships.keys()):
         # If the damaged ship's health points are below 0, then remove it from the board
         if player_1_ships[ship_id][2] <= 0:
+            ship_death_info[1][ship_id] -= 5
             _delete_ship(player_1_ships=player_1_ships, player_2_ships=player_2_ships, player_1_ships_facing=player_1_ships_facing,
                          player_2_ships_facing=player_2_ships_facing, player=0, ship_id=ship_id, turn_on_music=turn_on_music,
                          volume=volume, effects=effects)
@@ -100,12 +121,14 @@ def _handle_ship_death(
     for ship_id in list(player_2_ships.keys()):
         # If the damaged ship's health points are below 0, then remove it from the board
         if player_2_ships[ship_id][2] <= 0:
+            ship_death_info[2][ship_id] -= 5
             _delete_ship(player_1_ships=player_1_ships, player_2_ships=player_2_ships,
                          player_1_ships_facing=player_1_ships_facing,
                          player_2_ships_facing=player_2_ships_facing, player=1, ship_id=ship_id,
                          turn_on_music=turn_on_music,
                          volume=volume, effects=effects)
-
+            
+    return ship_death_info
 
 def _ship_movement(
     game_map: np.ndarray,
@@ -118,10 +141,16 @@ def _ship_movement(
     turn_on_music: bool,
     volume: float
 ):
+    movement_info = {
+        1: defaultdict(int),
+        2: defaultdict(int)
+    }
+
     for command in actions["player_1"]["ships_actions"]:
         if command[1] == 0:
             ship_id, act, direction, velocity = command
             if ship_id not in player_1_ships.keys() or player_1_ships[ship_id][4] > 0:
+                movement_info[1][ship_id] -= 2
                 continue
             ship_x, ship_y = player_1_ships[ship_id][0], player_1_ships[ship_id][1]
 
@@ -149,6 +178,7 @@ def _ship_movement(
             if game_map[player_1_ships[ship_id][1], player_1_ships[ship_id][0]] == 2:
                 player_1_ships[ship_id][4] = MOVE_COOLDOWN
                 player_1_ships[ship_id][2] -= ASTEROID_DAMAGE
+                movement_info[1][ship_id] -= 1
 
             # If the ship entered one of player's tiles, start the healing effect
             if game_map[player_1_ships[ship_id][1], player_1_ships[ship_id][0]] & 64 == 64 and game_map[ship_y, ship_x] & 64 != 64:
@@ -189,6 +219,7 @@ def _ship_movement(
             if game_map[player_2_ships[ship_id][1], player_2_ships[ship_id][0]] == 2:
                 player_2_ships[ship_id][4] = MOVE_COOLDOWN
                 player_2_ships[ship_id][2] -= ASTEROID_DAMAGE
+                movement_info[2][ship_id] -= 1
 
             # If the ship entered one of player's tiles, start the healing effect
             if game_map[player_2_ships[ship_id][1], player_2_ships[ship_id][0]] & 128 == 128 and game_map[ship_y, ship_x] & 128 != 128:
@@ -198,6 +229,7 @@ def _ship_movement(
             if game_map[player_2_ships[ship_id][1], player_2_ships[ship_id][0]] & 128 != 128 and game_map[ship_y, ship_x] & 128 == 128:
                 _delete_healing_effect(1, ship_id, effects)
 
+    return movement_info
 
 def _ship_construction(
     actions: dict,
@@ -326,10 +358,16 @@ def _ship_land_interaction(
     player_2_ships_facing: dict,
     effects: list
 ):
+    ship_land_interaction_info = {
+        1: defaultdict(int),
+        2: defaultdict(int)
+    }
+
     ship_ids_to_delete_1 = []
     for ship_id, (ship_x, ship_y, hp, firing_cooldown, move_cooldown) in player_1_ships.items():
         if game_map[ship_y, ship_x] & 64 == 64 and hp != 100:
             player_1_ships[ship_id][2] = np.clip(player_1_ships[ship_id][2] + SHIP_HEALING_SPEED, 1, 100)
+            ship_land_interaction_info[1][ship_id] += 1
 
         planet_id = _get_planet_id_by_ship_position(ship_x, ship_y, planets_centers=planets_centers)
         if planet_id != -1:
@@ -342,6 +380,7 @@ def _ship_land_interaction(
             elif planets_occupation_progress[planet_id] == -1:
                 planets_occupation_progress[planet_id] = 0
                 ship_ids_to_delete_1.append(ship_id)
+                ship_land_interaction_info[1][ship_id] += 10
 
             # If the planet belongs to the other player
             elif planets_occupation_progress[planet_id] == 100:
@@ -361,6 +400,7 @@ def _ship_land_interaction(
     for ship_id, (ship_x, ship_y, hp, firing_cooldown, move_cooldown) in player_2_ships.items():
         if game_map[ship_y, ship_x] & 128 == 128 and hp != 100:
             player_2_ships[ship_id][2] = np.clip(player_2_ships[ship_id][2] + SHIP_HEALING_SPEED, 1, 100)
+            ship_land_interaction_info[2][ship_id] += 1
 
         planet_id = _get_planet_id_by_ship_position(ship_x, ship_y, planets_centers=planets_centers)
         if planet_id != -1:
@@ -373,6 +413,7 @@ def _ship_land_interaction(
             elif planets_occupation_progress[planet_id] == -1:
                 planets_occupation_progress[planet_id] = 100
                 ship_ids_to_delete_2.append(ship_id)
+                ship_land_interaction_info[2][ship_id] += 10
 
             # If the planet belongs to the other player
             elif planets_occupation_progress[planet_id] == 0:
@@ -387,7 +428,8 @@ def _ship_land_interaction(
                      player_2_ships_facing=player_2_ships_facing, player=1, ship_id=ship_id,
                      turn_on_music=False,
                      volume=0.0, effects=effects, death_effect=False)
-
+        
+    return ship_land_interaction_info
 
 def _decrease_cooldowns(
     player_1_ships: dict,
