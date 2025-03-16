@@ -34,7 +34,7 @@ def simulate_game(
     if not verbose:
         gym.logger.min_level = 40
 
-    env = gym.make('OctoSpace-v0', player_1_id=player_1_id, player_2_id=player_2_id, max_steps=1000,
+    env = gym.make('OctoSpace-v0', player_1_id=player_1_id, player_2_id=player_2_id, max_steps=2000,
                    render_mode=render_mode, turn_on_music=turn_on_music, volume=0.1)
     obs, info = env.reset()
 
@@ -72,7 +72,6 @@ def simulate_game(
                 "player_2": action_2
             }
         )
-        print(obs["player_2"])
 
         if render_mode is not None:
             for event in pygame.event.get():
