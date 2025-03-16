@@ -11,9 +11,9 @@ import datetime
 class DQN(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 128)
-        self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, output_dim)
+        self.fc1 = nn.Linear(input_dim, 32)
+        self.fc2 = nn.Linear(32, 32)
+        self.fc3 = nn.Linear(32, output_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -42,7 +42,7 @@ class Ship:
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
         self.lr = 1e-3  # Learning rate
-        self.batch_size = 64
+        self.batch_size = 256
 
         self.q_network = q_network
         self.target_network = target_network
@@ -133,6 +133,9 @@ def action_from_actions(action):
 
 
 class Agent:
+    target_network = None
+
+
     def __init__(self, side: int):
         """
         :param side: Indicates whether the player is on left side (0) or right side (1)
@@ -163,7 +166,7 @@ class Agent:
                     )
             
             if self.side % 2 == 0 and random.random() < 0.001: 
-                self.save_model(f"agents/{datetime.datetime.now().hour}_{datetime.datetime.now().minute}.pth")
+                self.save_model(f"agents32/{datetime.datetime.now().hour}_{datetime.datetime.now().minute}.pth")
 
             # next_state = np.random.rand(agent.state_dim)  # Replace with actual environment logic
             # reward = np.random.random()  # Replace with actual game logic for reward
@@ -204,21 +207,24 @@ class Agent:
         :param abs_path:
         :return:
         """
-        filename = "agents/4_49.pth"
+        filename = "agents32/6_28.pth"
 
         self.state_dim = 28
         self.action_dim = 17
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
         self.lr = 1e-3  # Learning rate
-        self.batch_size = 64
+        self.batch_size = 256
         self.buffer_size = 10000
 
-        self.q_network = DQN(self.state_dim, self.action_dim)
-        # self.q_network.load_state_dict(torch.load(filename))
+        if Agent.target_network is None:
+            Agent.target_network = DQN(self.state_dim, self.action_dim)
+            Agent.target_network.load_state_dict(torch.load(filename))
+        self.target_network = Agent.target_network
+        # self.target_network.load_state_dict(torch.load(filename))
         print(f"Model loaded from {filename}")
-        self.target_network = DQN(self.state_dim, self.action_dim)
-        self.target_network.load_state_dict(self.q_network.state_dict())
+        self.q_network = DQN(self.state_dim, self.action_dim)
+        self.q_network.load_state_dict(self.target_network.state_dict())
 
         # Optimizer
         self.optimizer = optim.Adam(self.q_network.parameters(), lr=self.lr)
