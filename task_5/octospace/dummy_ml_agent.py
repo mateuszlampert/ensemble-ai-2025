@@ -194,7 +194,7 @@ class Agent:
             action = val_to_action(id, ship.predict_action(state))
             ships_actions.append(action)
 
-        if random.random() < 0.1:
+        if info and random.random() < 0.1:
             ship.update_target_network()
 
         return {"ships_actions": ships_actions, "construction": 1}
@@ -207,7 +207,7 @@ class Agent:
         :param abs_path:
         :return:
         """
-        filename = "agents32/6_28.pth"
+        filename = abs_path + "/agents32/7_37.pth"
 
         self.state_dim = 28
         self.action_dim = 17
