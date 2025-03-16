@@ -6,7 +6,6 @@ import pygame
 import numpy as np
 from gymnasium.core import RenderFrame
 
-
 from octospace.envs.game_config import (MAX_RESOURCES, MAP_MAX_VALUE,
                                         WINDOW_SIZE, MAX_SHIPS, BOARD_SIZE, VERSION, GUI_SIZE, BORDER_WIDTH,
                                         BASE_SHIP_SPEED, SHIP_COST,
@@ -354,12 +353,12 @@ class OctoSpaceEnv(gym.Env):
         _decrease_cooldowns(player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships)
 
         # Ships firing
-        _ship_firing(actions=actions, player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships,
+        firing_info = _ship_firing(actions=actions, player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships,
                      player_1_ships_facing=self._player_1_ships_facing, player_2_ships_facing=self._player_2_ships_facing,
                      effects=self.effects, turn_on_music=self._turn_on_music, volume=self.volume)
 
         # Ship movement
-        _ship_movement(game_map=self._map, actions=actions, player_1_ships=self._player_1_ships,
+        movement_info = _ship_movement(game_map=self._map, actions=actions, player_1_ships=self._player_1_ships,
                        player_2_ships=self._player_2_ships, player_1_ships_facing=self._player_1_ships_facing,
                        player_2_ships_facing=self._player_2_ships_facing, effects=self.effects, turn_on_music=self._turn_on_music,
                        volume=self.volume)
@@ -385,21 +384,42 @@ class OctoSpaceEnv(gym.Env):
                              planets_ongoing_occupation=self._planets_ongoing_occupation)
 
         # Planet capture and ship healing
-        _ship_land_interaction(game_map=self._map, planets_centers=self._planets_centers, planets_occupation_progress=self._planets_occupation_progress,
+        ship_land_interaction_info = _ship_land_interaction(game_map=self._map, planets_centers=self._planets_centers, planets_occupation_progress=self._planets_occupation_progress,
                                planets_ongoing_occupation=self._planets_ongoing_occupation,
                                player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships,
                                player_1_ships_facing=self._player_1_ships_facing, player_2_ships_facing=self._player_2_ships_facing,
                                effects=self.effects)
 
-        _handle_ship_death(player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships, player_1_ships_facing=self._player_1_ships_facing,
+        ship_death_info = _handle_ship_death(player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships, player_1_ships_facing=self._player_1_ships_facing,
                            player_2_ships_facing=self._player_2_ships_facing, effects=self.effects, turn_on_music=self._turn_on_music, volume=self.volume)
 
         _handle_visibility(player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships, player_1_visibility_mask=self._player_1_visibility_mask,
                            player_2_visibility_mask=self._player_2_visibility_mask)
+        
+        partial_infos = [firing_info, movement_info, ship_land_interaction_info, ship_death_info]
+
+        info = {
+            1: sum([partial[1] for partial in partial_infos]) - 0.1,
+            2: sum([partial[2] for partial in partial_infos]) - 0.1
+        }
+
+        reward = self._get_reward()
+        player_1_reward = reward["player_1"]
+        player_2_reward = reward["player_2"]
+
+        if (player_1_reward, player_2_reward) == (0.5, 0.5):
+            info[1] -= 20
+            info[2] -= 20
+        elif (player_1_reward, player_2_reward) == (1, 0):
+            info[1] += 200
+            info[2] -= 200
+        elif (player_1_reward, player_2_reward) == (0, 1):
+            info[1] -= 200
+            info[2] += 200
 
         self._victory_conditions()
 
-        return self._get_obs(), self._get_reward(), self.terminated, False, self._get_info()
+        return self._get_obs(), self._get_reward(), self.terminated, False, info
 
     def render(self) -> RenderFrame:
         if self.render_mode == "rgb_array":
