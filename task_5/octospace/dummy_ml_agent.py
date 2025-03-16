@@ -4,7 +4,7 @@ import torch.optim as optim
 import random
 import numpy as np
 from collections import deque
-from utils import obs_to_state
+from utils import obs_to_state, val_to_action
 import datetime
 
 
@@ -38,7 +38,7 @@ class ReplayBuffer:
 class Ship:
     def __init__(self, q_network, target_network, optimizer, replay_buffer):
         self.state_dim = 27
-        self.action_dim = 4
+        self.action_dim = 17
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
         self.lr = 1e-3  # Learning rate
@@ -192,8 +192,8 @@ class Agent:
             # print(state)
             # print(len(state))
             
-            direction = ship.predict_action(state)
-            ships_actions.append([id, 0, direction, 1])
+            action = val_to_action(ship.predict_action(state))
+            ships_actions.append(action)
 
         if random.random() < 0.1:
             ship.update_target_network()
@@ -211,7 +211,7 @@ class Agent:
         filename = "agents/2_1.pth"
 
         self.state_dim = 27
-        self.action_dim = 4
+        self.action_dim = 17
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
         self.lr = 1e-3  # Learning rate
