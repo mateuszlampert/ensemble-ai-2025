@@ -4,6 +4,7 @@ import torch.optim as optim
 import random
 import numpy as np
 from collections import deque
+import datetime
 
 
 class DQN(nn.Module):
@@ -171,6 +172,9 @@ class Agent:
                         ),
                         is_end,
                     )
+            
+            if random.random() < 0.001: 
+                self.save_model(f"agents/{datetime.datetime.now().hour}_{datetime.datetime.now().minute}.pth")
 
             # next_state = np.random.rand(agent.state_dim)  # Replace with actual environment logic
             # reward = np.random.random()  # Replace with actual game logic for reward
@@ -206,6 +210,8 @@ class Agent:
         :param abs_path:
         :return:
         """
+        filename = "agents/1_15.pth"
+
         self.state_dim = 2
         self.action_dim = 4
         self.epsilon = 0.1  # Exploration factor
@@ -215,6 +221,8 @@ class Agent:
         self.buffer_size = 10000
 
         self.q_network = DQN(self.state_dim, self.action_dim)
+        self.q_network.load_state_dict(torch.load(filename))
+        print(f"Model loaded from {filename}")
         self.target_network = DQN(self.state_dim, self.action_dim)
         self.target_network.load_state_dict(self.q_network.state_dict())
 
@@ -230,7 +238,7 @@ class Agent:
 
         :return:
         """
-        pass
+        self.q_network.eval()
 
     def to(self, device):
         """
@@ -240,4 +248,12 @@ class Agent:
         :param device:
         :return:
         """
-        pass
+        self.q_network.to(device)
+    
+    def save_model(self, filename="dqn_model.pth"):
+        torch.save(self.q_network.state_dict(), filename)
+        print(f"Model saved to {filename}")
+    
+    def load_model(self, filename="dqn_model.pth"):
+        self.q_network.load_state_dict(torch.load(filename))
+        print(f"Model loaded from {filename}")
