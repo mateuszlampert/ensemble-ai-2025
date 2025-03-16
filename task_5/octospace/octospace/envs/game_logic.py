@@ -153,6 +153,8 @@ def _ship_movement(
                 movement_info[1][ship_id] -= 2
                 continue
             ship_x, ship_y = player_1_ships[ship_id][0], player_1_ships[ship_id][1]
+            if direction == 0 or direction == 1:
+                movement_info[1][ship_id] += 0.2
 
             # Calculate max distance the ship can travel
             max_movement = BASE_SHIP_SPEED
@@ -170,6 +172,11 @@ def _ship_movement(
             # Move the ship in that direction
             player_1_ships[ship_id][0] = np.clip(player_1_ships[ship_id][0] + movement_vec[0], 0, BOARD_SIZE - 1)
             player_1_ships[ship_id][1] = np.clip(player_1_ships[ship_id][1] + movement_vec[1], 0, BOARD_SIZE - 1)
+
+            new_ship_x, new_ship_y = player_1_ships[ship_id][0], player_1_ships[ship_id][1]
+
+            if abs(new_ship_x - 90) + abs(new_ship_y - 90) < abs(ship_x - 90) + abs(ship_y - 90):
+                movement_info[1][ship_id] += 0.2
 
             # Update ship's direction
             player_1_ships_facing[ship_id] = direction
@@ -211,6 +218,11 @@ def _ship_movement(
             # Move the ship in that direction
             player_2_ships[ship_id][0] = np.clip(player_2_ships[ship_id][0] + movement_vec[0], 0, BOARD_SIZE - 1)
             player_2_ships[ship_id][1] = np.clip(player_2_ships[ship_id][1] + movement_vec[1], 0, BOARD_SIZE - 1)
+
+            new_ship_x, new_ship_y = player_2_ships[ship_id][0], player_2_ships[ship_id][1]
+
+            if abs(new_ship_x - 9) + abs(new_ship_y - 9) < abs(ship_x - 9) + abs(ship_y - 9):
+                movement_info[2][ship_id] += 0.2
 
             # Update ship's direction
             player_2_ships_facing[ship_id] = direction
