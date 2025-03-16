@@ -167,6 +167,10 @@ def get_enemy_base_planet_health(obs: dict, side: int, enemy_base_coords: Tuple[
 
     return enemy_base_planet[2]
 
+def get_self_ship_cooldown(obs: dict, ship_id: int):
+    self_ship = get_self_ship(obs, ship_id)
+    return int(self_ship[5] > 0)
+
 def obs_to_state(obs: dict, ship_id: int, side: int):
     self_base_coords = (9, 9) if side == 0 else (90, 90)
     enemy_base_coords = (90, 90) if side == 0 else (9, 9)
@@ -199,7 +203,8 @@ def obs_to_state(obs: dict, ship_id: int, side: int):
         get_enemy_ships_count(obs),
         get_allied_ships_count(obs, ship_id),
         get_enemy_planets_count(obs, side),
-        get_allied_planets_count(obs, side)
+        get_allied_planets_count(obs, side),
+        get_self_ship_cooldown(obs, ship_id)
     ]
 
 def val_to_action(ship_id: int, val: int):
