@@ -5,6 +5,7 @@ from gymnasium import spaces
 import pygame
 import numpy as np
 from gymnasium.core import RenderFrame
+from functools import reduce
 
 from octospace.envs.game_config import (MAX_RESOURCES, MAP_MAX_VALUE,
                                         WINDOW_SIZE, MAX_SHIPS, BOARD_SIZE, VERSION, GUI_SIZE, BORDER_WIDTH,
@@ -396,28 +397,37 @@ class OctoSpaceEnv(gym.Env):
         _handle_visibility(player_1_ships=self._player_1_ships, player_2_ships=self._player_2_ships, player_1_visibility_mask=self._player_1_visibility_mask,
                            player_2_visibility_mask=self._player_2_visibility_mask)
         
-        partial_infos = [firing_info, movement_info, ship_land_interaction_info, ship_death_info]
-
-        info = {
-            1: sum([partial[1] for partial in partial_infos]) - 0.1,
-            2: sum([partial[2] for partial in partial_infos]) - 0.1
-        }
+        self._victory_conditions()
 
         reward = self._get_reward()
-        player_1_reward = reward["player_1"]
-        player_2_reward = reward["player_2"]
+        player_1_reward = -0.1
+        player_2_reward = -0.1
 
-        if (player_1_reward, player_2_reward) == (0.5, 0.5):
-            info[1] -= 20
-            info[2] -= 20
-        elif (player_1_reward, player_2_reward) == (1, 0):
-            info[1] += 200
-            info[2] -= 200
-        elif (player_1_reward, player_2_reward) == (0, 1):
-            info[1] -= 200
-            info[2] += 200
+        if (reward["player_1"], reward["player_2"]) == (0.5, 0.5):
+            player_1_reward -= 40
+            player_2_reward -= 40
+        elif (reward["player_1"], reward["player_2"]) == (1, 0):
+            player_1_reward += 200
+            player_2_reward -= 200
+        elif (reward["player_1"], reward["player_2"]) == (0, 1):
+            player_1_reward -= 200
+            player_2_reward += 200
+        
+        partial_infos = [firing_info, movement_info, ship_land_interaction_info, ship_death_info, {
+            1: {id: player_1_reward for id in self._player_1_ships.keys()},
+            2: {id: player_2_reward for id in self._player_2_ships.keys()}
+        }]
 
-        self._victory_conditions()
+        def merge(d1, d2):
+            d = {}
+            for  k in list(d1.keys()) + list(d1.keys()):
+                d[k] = d1.get(k, 0) + d2.get(k, 0)
+            return d
+
+        info = {
+            1: reduce(lambda d1, d2: merge(d1, d2), [partial[1] for partial in partial_infos]),
+            2: reduce(lambda d1, d2: merge(d1, d2), [partial[2] for partial in partial_infos])
+        }
 
         return self._get_obs(), self._get_reward(), self.terminated, False, info
 
