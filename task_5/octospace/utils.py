@@ -208,49 +208,80 @@ def obs_to_state(obs: dict, ship_id: int, side: int):
     ]
 
 def val_to_action(ship_id: int, val: int):
-    match val:
-        case 0: return [ship_id, 0, 0, 0]
-        case 1: return [ship_id, 0, 0, 1]
-        case 2: return [ship_id, 0, 0, 2]
-        case 3: return [ship_id, 0, 0, 3]
-        case 4: return [ship_id, 0, 1, 1]
-        case 5: return [ship_id, 0, 1, 2]
-        case 6: return [ship_id, 0, 1, 3]
-        case 7: return [ship_id, 0, 2, 1]
-        case 8: return [ship_id, 0, 2, 2]
-        case 9: return [ship_id, 0, 2, 3]
-        case 10: return [ship_id, 0, 3, 1]
-        case 11: return [ship_id, 0, 3, 2]
-        case 12: return [ship_id, 0, 3, 3]
-        case 13: return [ship_id, 1, 0]
-        case 14: return [ship_id, 1, 1]
-        case 15: return [ship_id, 1, 2]
-        case _: return [ship_id, 1, 3]
+    if val == 0:
+        return [ship_id, 0, 0, 0]
+    elif val == 1:
+        return [ship_id, 0, 0, 1]
+    elif val == 2:
+        return [ship_id, 0, 0, 2]
+    elif val == 3:
+        return [ship_id, 0, 0, 3]
+    elif val == 4:
+        return [ship_id, 0, 1, 1]
+    elif val == 5:
+        return [ship_id, 0, 1, 2]
+    elif val == 6:
+        return [ship_id, 0, 1, 3]
+    elif val == 7:
+        return [ship_id, 0, 2, 1]
+    elif val == 8:
+        return [ship_id, 0, 2, 2]
+    elif val == 9:
+        return [ship_id, 0, 2, 3]
+    elif val == 10:
+        return [ship_id, 0, 3, 1]
+    elif val == 11:
+        return [ship_id, 0, 3, 2]
+    elif val == 12:
+        return [ship_id, 0, 3, 3]
+    elif val == 13:
+        return [ship_id, 1, 0]
+    elif val == 14:
+        return [ship_id, 1, 1]
+    elif val == 15:
+        return [ship_id, 1, 2]
+    else:
+        return [ship_id, 1, 3]
 
 def action_to_val(action: list):
     if len(action) == 4:
-        _, _, direction, speed = tuple(action)
+        _, _, direction, speed = action
 
-        match (direction, speed):
-            case (0, 0): return 0
-            case (0, 1): return 1
-            case (0, 2): return 2
-            case (0, 3): return 3
-            case (1, 1): return 4
-            case (1, 2): return 5
-            case (1, 3): return 6
-            case (2, 1): return 7
-            case (2, 2): return 8
-            case (2, 3): return 9
-            case (3, 1): return 10
-            case (3, 2): return 11
-            case (3, 3): return 12
+        if direction == 0 and speed == 0:
+            return 0
+        elif direction == 0 and speed == 1:
+            return 1
+        elif direction == 0 and speed == 2:
+            return 2
+        elif direction == 0 and speed == 3:
+            return 3
+        elif direction == 1 and speed == 1:
+            return 4
+        elif direction == 1 and speed == 2:
+            return 5
+        elif direction == 1 and speed == 3:
+            return 6
+        elif direction == 2 and speed == 1:
+            return 7
+        elif direction == 2 and speed == 2:
+            return 8
+        elif direction == 2 and speed == 3:
+            return 9
+        elif direction == 3 and speed == 1:
+            return 10
+        elif direction == 3 and speed == 2:
+            return 11
+        elif direction == 3 and speed == 3:
+            return 12
 
     elif len(action) == 3:
-        _, _, direction = tuple(action)
+        _, _, direction = action
 
-        match direction:
-            case 0: return 13
-            case 1: return 14
-            case 2: return 15
-            case _: return 16
+        if direction == 0:
+            return 13
+        elif direction == 1:
+            return 14
+        elif direction == 2:
+            return 15
+        else:
+            return 16
