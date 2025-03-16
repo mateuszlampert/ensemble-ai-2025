@@ -201,3 +201,23 @@ def obs_to_state(obs: dict, ship_id: int, side: int):
         get_enemy_planets_count(obs, side),
         get_allied_planets_count(obs, side)
     ]
+
+def val_to_action(ship_id: int, val: int):
+    match val:
+        case 0: return [ship_id, 0, 0, 0]
+        case 1: return [ship_id, 0, 0, 1]
+        case 2: return [ship_id, 0, 0, 2]
+        case 3: return [ship_id, 0, 0, 3]
+        case 4: return [ship_id, 0, 1, 1]
+        case 5: return [ship_id, 0, 1, 2]
+        case 6: return [ship_id, 0, 1, 3]
+        case 7: return [ship_id, 0, 2, 1]
+        case 8: return [ship_id, 0, 2, 2]
+        case 9: return [ship_id, 0, 2, 3]
+        case 10: return [ship_id, 0, 3, 1]
+        case 11: return [ship_id, 0, 3, 2]
+        case 12: return [ship_id, 0, 3, 3]
+        case 13: return [ship_id, 1, 0]
+        case 14: return [ship_id, 1, 1]
+        case 15: return [ship_id, 1, 2]
+        case _: return [ship_id, 1, 3]
