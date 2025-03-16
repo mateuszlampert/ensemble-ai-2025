@@ -5,6 +5,8 @@ import random
 import numpy as np
 from collections import deque
 from utils import obs_to_state
+import datetime
+
 
 class DQN(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -35,7 +37,7 @@ class ReplayBuffer:
 
 class Ship:
     def __init__(self, q_network, target_network, optimizer, replay_buffer):
-        self.state_dim = 2
+        self.state_dim = 27
         self.action_dim = 4
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
@@ -92,7 +94,6 @@ class Ship:
             target_q_values = rewards + self.gamma * next_q_values_max * (1 - dones)
 
         # Compute loss (MSE)
-        print(q_values.size(), q_values.squeeze(1).size(), target_q_values.size())
         loss = nn.MSELoss()(q_values.squeeze(1), target_q_values)
 
         # Perform backpropagation
@@ -157,20 +158,17 @@ class Agent:
             for id, x, y, *_ in obs["allied_ships"]:
                 if any(map(lambda x: x[0] == id, prev_obs["allied_ships"])):
                     ship.train(
-                        state_from_obs(
-                            list(
-                                filter(lambda x: x[0] == id, prev_obs["allied_ships"])
-                            )[0]
-                        ),
+                        obs_to_state(prev_obs, id, self.side),
                         action_from_actions(
                             list(filter(lambda x: x[0] == id, prev_actions["ships_actions"]))[0]
                         ),
                         reward,
-                        state_from_obs(
-                            list(filter(lambda x: x[0] == id, obs["allied_ships"]))[0]
-                        ),
+                        obs_to_state(obs, id, self.side),
                         is_end,
                     )
+            
+            if random.random() < 0.001: 
+                self.save_model(f"agents/{datetime.datetime.now().hour}_{datetime.datetime.now().minute}.pth")
 
             # next_state = np.random.rand(agent.state_dim)  # Replace with actual environment logic
             # reward = np.random.random()  # Replace with actual game logic for reward
@@ -191,8 +189,10 @@ class Agent:
 
         for id, x, y, *_ in obs["allied_ships"]:
             state = obs_to_state(obs, id, self.side)
+            # print(state)
+            # print(len(state))
             
-            direction = ship.predict_action([x, y])
+            direction = ship.predict_action(state)
             ships_actions.append([id, 0, direction, 1])
 
         if random.random() < 0.1:
@@ -208,7 +208,9 @@ class Agent:
         :param abs_path:
         :return:
         """
-        self.state_dim = 2
+        filename = "agents/1_15.pth"
+
+        self.state_dim = 27
         self.action_dim = 4
         self.epsilon = 0.1  # Exploration factor
         self.gamma = 0.99  # Discount factor
@@ -217,6 +219,8 @@ class Agent:
         self.buffer_size = 10000
 
         self.q_network = DQN(self.state_dim, self.action_dim)
+        # self.q_network.load_state_dict(torch.load(filename))
+        # print(f"Model loaded from {filename}")
         self.target_network = DQN(self.state_dim, self.action_dim)
         self.target_network.load_state_dict(self.q_network.state_dict())
 
@@ -232,7 +236,7 @@ class Agent:
 
         :return:
         """
-        pass
+        self.q_network.eval()
 
     def to(self, device):
         """
@@ -242,4 +246,12 @@ class Agent:
         :param device:
         :return:
         """
-        pass
+        self.q_network.to(device)
+    
+    def save_model(self, filename="dqn_model.pth"):
+        torch.save(self.q_network.state_dict(), filename)
+        print(f"Model saved to {filename}")
+    
+    def load_model(self, filename="dqn_model.pth"):
+        self.q_network.load_state_dict(torch.load(filename))
+        print(f"Model loaded from {filename}")
